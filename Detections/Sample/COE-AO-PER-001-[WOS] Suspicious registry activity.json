@@ -17,10 +17,10 @@
     "resources": [
         {
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
-			"name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
             "kind": "Scheduled",
             "apiVersion": "2020-01-01",
-			"location": "[resourceGroup().location]",
+            "location": "[resourceGroup().location]",
             "properties": {
                 "displayName": "COE-AO-PER-001-[WOS] Suspicious registry activity",
                 "description": "[Detección ds intrusión-DS-T1012]\nAlerta que identifica las acciones frente al Registro de Windows y de esta manera tener recopilada la información sobre el sistema, la configuración y el software instalado, evitando así el comportamiento anómalo del adversario.",

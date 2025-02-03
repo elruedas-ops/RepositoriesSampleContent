@@ -1,9 +1,9 @@
 FileName, CommitSha
+Detections/Sample/COE-AO-PRI-004.json,bdb7d8a484384c0c3938e7209dd047b0418b3c79
+Detections/Sample/MDR-Modification of Accessibility Features.json,3896c10dbdbd9e5ba10c10525a1136b098c48062
+sentinel-deployment.config,d0176f11505175ced27cc0d3ede6f708fe7e120e
 Detections/Sample/imProcess_NOBELIUM_SuspiciousRundll32Exec.json,0ac47f62be8d0fe9152367ac42415cb52bd14ae4
+Detections/Sample/COE-AO-PRI-003.json,c5e5aaff5e60ad8bd1a4c9a72b22c88d2b372b3d
 Detections/Sample/PasswordSpray.json,9190e34e9b54db53303efe49488cf5cf8c245b1c
 Detections/Sample/MalformedUserAgents.json,ee6bc4e38e526f390b1936c568cf54dba43c2e9f
-Detections/Sample/COE-AO-PRI-004.json,bdb7d8a484384c0c3938e7209dd047b0418b3c79
-sentinel-deployment.config,d0176f11505175ced27cc0d3ede6f708fe7e120e
-Detections/Sample/MDR-Modification of Accessibility Features.json,3896c10dbdbd9e5ba10c10525a1136b098c48062
-Detections/Sample/COE-AO-PRI-003.json,c5e5aaff5e60ad8bd1a4c9a72b22c88d2b372b3d
 

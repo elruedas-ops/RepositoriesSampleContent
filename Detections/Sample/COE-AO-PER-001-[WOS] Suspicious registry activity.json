@@ -5,13 +5,22 @@
     "workspace": {
       "type": "String"
     },
+    "analytic-id":  {
+      "type":  "string",
+      "defaultValue":  "e5097bac-7f8e-ffff-9518-7e0048b643d3",
+      "minLength":  1,
+      "metadata":  {
+      "description":  "Unique id for the scheduled alert rule"
+                    }
+                   }
+    },
     "resources": [
         {
-	    "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/e5097bac-7f8e-ffff-9518-7e0048b643d3')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/e5097bac-7f8e-ffff-9518-7e0048b643d3')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+	    "name":  "[concat(parameters(\u0027workspace\u0027),\u0027/Microsoft.SecurityInsights/\u0027,parameters(\u0027analytic-id\u0027))]",
             "kind": "Scheduled",
-            "apiVersion": "2023-12-01-preview",		
+            "apiVersion": "2023-12-01-preview",
+	    "location":  "[resourceGroup().location]",
             "properties": {
                 "displayName": "COE-AO-PER-001-[WOS] Suspicious registry activity",
                 "description": "[Detección ds intrusión-DS-T1012]\nAlerta que identifica las acciones frente al Registro de Windows y de esta manera tener recopilada la información sobre el sistema, la configuración y el software instalado, evitando así el comportamiento anómalo del adversario.",

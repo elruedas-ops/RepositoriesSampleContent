@@ -14,7 +14,7 @@
             "kind": "Scheduled",
             "apiVersion": "2023-12-01-preview",
             "properties": {
-                "displayName": "COE-AO-EVA-001-[WOS] Hostile Clear Audit logs V1.0",
+                "displayName": "COE-AO-EVA-001-[WOS] Hostile Clear Audit logs V1",
                 "description": "Alerta cuando en los AD se encuentra el event ID 1102. Detecta el borrado de registro de eventos de Windows, que podría indicar que alguien quiere borrar su rastro.",
                 "severity": "Medium",
                 "enabled": true,

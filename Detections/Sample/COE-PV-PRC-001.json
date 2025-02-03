@@ -13,7 +13,7 @@
             "kind": "Scheduled",
             "apiVersion": "2023-12-01-preview",
             "properties": {
-                "displayName": "COE-PV-PRC-001-[WOS] Possible Masquerading",
+                "displayName": "COE-PV-PRC-001-[WOS] Possible Masqueradingg",
                 "description": "[Activo comprometido-PS-T1543]\nAlerta que identifica la creación de un nuevo proceso en la máquina el cual no se está ejecutando desde la ruta desde la que debería hacerlo. ",
                 "severity": "High",
                 "enabled": true,

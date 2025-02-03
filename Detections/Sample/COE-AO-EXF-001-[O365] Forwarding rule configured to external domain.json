@@ -14,7 +14,7 @@
             "kind": "Scheduled",
             "apiVersion": "2023-12-01-preview",
             "properties": {
-                "displayName": "COE-AO-EXF-001-[O365] Forwarding rule configured to external domain V1.0",
+                "displayName": "COE-AO-EXF-001-[O365] Forwarding rule configured to external domain V1",
                 "description": "Alerta cuando  se crea una regla de Mail Forwarding hacia un correo que no sea de los dominios de Indra",
                 "severity": "Low",
                 "enabled": true,

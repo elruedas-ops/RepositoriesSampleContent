@@ -17,7 +17,7 @@
     }
     "resources": [
         {
-			"name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',ariables('ruleGuid'))]",
+			"name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',variables('ruleGuid'))]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2023-12-01-preview",

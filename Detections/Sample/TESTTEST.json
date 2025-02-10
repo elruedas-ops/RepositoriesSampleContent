@@ -4,11 +4,20 @@
     "parameters": {
         "workspace": {
             "type": "String"
+        },
+		"ruleName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for this scheduled alert rule. Must be unique for the workspace"
+            }
         }
     },
+	"variables": {
+        "ruleGuid": "[uniqueString(parameters('ruleName'))]"
+    }
     "resources": [
         {
-            "name": "TEST Lunes",
+			"name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',ariables('ruleGuid'))]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2023-12-01-preview",

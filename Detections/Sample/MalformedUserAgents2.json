@@ -7,7 +7,7 @@
     },
     "analytic-id": {
       "type": "string",
-      "defaultValue": "[guid(subscription().subscriptionId,resourceGroup().id,deployment().name),base64('algo')]",
+      "defaultValue": "[guid(subscription().subscriptionId,resourceGroup().id,deployment().name),'algo']",
       "minLength": 1,
       "metadata": {
         "description": "Unique id for the scheduled alert rule"

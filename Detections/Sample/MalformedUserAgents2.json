@@ -8,7 +8,7 @@
     "rule-name": {
       "type": "string",
       "defaultValue": "algo"
-    }
+    },
     "analytic-id": {
       "type": "string",
       "defaultValue": "[guid(subscription().subscriptionId,resourceGroup().id,deployment().name,'rule-name')]",

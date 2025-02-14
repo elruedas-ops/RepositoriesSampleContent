@@ -11,7 +11,7 @@
     },
     "analytic-id": {
       "type": "string",
-      "defaultValue": "[guid(subscription().subscriptionId,resourceGroup().id,deployment().name,'rule-name')]",
+      "defaultValue": "[guid('rule-name')]",
       "minLength": 1,
       "metadata": {
         "description": "Unique id for the scheduled alert rule"

@@ -15,7 +15,7 @@ on:
     paths:
     - '!.github/workflows/**'  # this filter prevents other workflow changes from triggering this workflow
     - '.github/workflows/sentinel-deploy-5ec8d4e0-eae1-4c3e-8181-0a7d21b66b4c.yml'
-    - 'Detections/All-Custoner-pro/**'
+    - 'Detections/All-Customer-pro/**'
 
 jobs:
   deploy-content:

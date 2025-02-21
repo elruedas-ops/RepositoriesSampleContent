@@ -7,7 +7,7 @@
     },
     "rule-name": {
       "type": "string",
-      "defaultValue": "[AAD] Impossible Travel: same user and multiple source geo"
+      "defaultValue": "Impossible Travel: same user and multiple source geo"
     },
     "analytic-id": {
       "type": "string",

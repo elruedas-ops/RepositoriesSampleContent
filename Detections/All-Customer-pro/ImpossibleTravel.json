@@ -7,11 +7,11 @@
     },
     "rule-name": {
       "type": "string",
-      "defaultValue": "Impossible Travel: same user and multiple source geo"
+      "defaultValue": "AO-BRU-[AZU][EID] Excessive login failures for same user followed by successful one​"
     },
     "analytic-id": {
       "type": "string",
-      "defaultValue": "[guid(parameters('workspace'),'rule-name')]",
+      "defaultValue": "[guid(parameters('workspace'),parameters('rule-name'))]",
       "minLength": 1,
       "metadata": {
         "description": "Unique id for the scheduled alert rule"

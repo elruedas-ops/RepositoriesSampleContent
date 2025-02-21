@@ -20,13 +20,13 @@
   },
   "resources": [
     {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/',parameters('analytic-id'))",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
-            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
-            "kind": "Scheduled",
-            "apiVersion": "2020-01-01",
-            "location": "[resourceGroup().location]",
-            "properties": {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/',parameters('analytic-id'))]",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
+      "apiVersion": "2020-01-01",
+      "kind": "Scheduled",
+      "location": "[resourceGroup().location]",
+      "properties": {
                 "displayName": "[concat(parameters('rule-name'),parameters('analytic-id'))",
                 "description": "¿Qué queremos detectar? - Un intento de login de un mismo usuario desde distintas geolocalizaciones en un corto periodo de tiempo\n¿Cómo lo queremos detectar? - Monitorizando la geolocalización de las IPs de origen en un intento de login en Azure\n¿Porqué lo queremos detectar? - Un atacante puede intentar acceder a la red interna de la organización realizando un login exitoso a través de Azure. Para ello puede utilizar una red de equipos geolocalizados en distintos países.",
                 "severity": "Medium",

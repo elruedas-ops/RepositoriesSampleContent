@@ -27,7 +27,7 @@
       "kind": "Scheduled",
       "location": "[resourceGroup().location]",
       "properties": {
-                "displayName": "[concat(parameters('rule-name'),parameters('analytic-id'))",
+                "displayName": "[concat(parameters('rule-name'),parameters('analytic-id'))]",
                 "description": "¿Qué queremos detectar? - Un intento de login de un mismo usuario desde distintas geolocalizaciones en un corto periodo de tiempo\n¿Cómo lo queremos detectar? - Monitorizando la geolocalización de las IPs de origen en un intento de login en Azure\n¿Porqué lo queremos detectar? - Un atacante puede intentar acceder a la red interna de la organización realizando un login exitoso a través de Azure. Para ello puede utilizar una red de equipos geolocalizados en distintos países.",
                 "severity": "Medium",
                 "enabled": true,

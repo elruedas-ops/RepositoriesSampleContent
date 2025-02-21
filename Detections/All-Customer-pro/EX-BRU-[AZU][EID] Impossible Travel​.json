@@ -1,0 +1,103 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "workspace": {
+        "type": "String"
+      },
+      "rule-name": {
+        "type": "string",
+        "defaultValue": "EX-BRU-[AZU][EID] Impossible Travel​​"
+      },
+      "analytic-id": {
+        "type": "string",
+        "defaultValue": "[guid(parameters('workspace'),parameters('rule-name'))]",
+        "minLength": 1,
+        "metadata": {
+          "description": "Unique id for the scheduled alert rule"
+        }
+      }
+    },
+    "resources": [
+      {
+        "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+        "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/',parameters('analytic-id'))]",
+        "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
+        "apiVersion": "2020-01-01",
+        "kind": "Scheduled",
+        "location": "[resourceGroup().location]",
+        "properties": {
+                "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
+                "description": "¿Qué queremos detectar? - Un intento de login de un mismo usuario desde distintas geolocalizaciones en un corto periodo de tiempo\n¿Cómo lo queremos detectar? - Monitorizando la geolocalización de las IPs de origen en un intento de login en Azure\n¿Porqué lo queremos detectar? - Un atacante puede intentar acceder a la red interna de la organización realizando un login exitoso a través de Azure. Para ello puede utilizar una red de equipos geolocalizados en distintos países.",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "SigninLogs\r\n| where isnotnull(parse_json(LocationDetails).geoCoordinates.latitude)\r\n| extend LoginTime = TimeGenerated, ResultType\r\n// Extraer campos del JSON en LocationDetails\r\n| extend City = tostring(parse_json(LocationDetails).city),\r\n         Country = tostring(parse_json(LocationDetails).countryOrRegion),\r\n         Latitude = todouble(parse_json(LocationDetails).geoCoordinates.latitude),\r\n         Longitude = todouble(parse_json(LocationDetails).geoCoordinates.longitude),\r\n         SigninIP = tostring(IPAddress)\r\n// Filtrar por resultados Nulos o Vacíos\r\n| where isnotempty(Longitude) and isnotempty(Latitude) and isnotnull(Longitude) and isnotnull(Latitude) and ResultType !in (50126, 50053, 53003, 50079, 50074, 50140, 500121)\r\n// Agrupar por usuario y obtener logins en orden temporal\r\n| summarize Logins = make_list(pack(\"Latitude\", Latitude, \"Longitude\", Longitude, \"Time\", LoginTime, \"City\", City, \"Country\", Country, \"ResultType\", ResultType, \"SinginIP\", SigninIP))\r\n    by UserPrincipalName\r\n// Sacar las columnas que nos interesan ordenadas\r\n| mv-expand Logins\r\n| project UserPrincipalName,\r\n          SinginIP = Logins.SinginIP,\r\n          Latitude = todouble(Logins.Latitude),\r\n          Longitude = todouble(Logins.Longitude),\r\n          LoginTime = todatetime(Logins.Time),\r\n          City = tostring(Logins.City),\r\n          Country = Logins.Country,\r\n          ResultType = tostring(Logins.ResultType)\r\n| order by UserPrincipalName, LoginTime asc\r\n// Asignar un índice serializado\r\n| serialize Index = row_number()\r\n// Crear un self-join para pomparar logines consecutivos del mismo usuario\r\n| join kind=inner (\r\n    SigninLogs\r\n    | extend PrevLoginTime = TimeGenerated, PrevResultType = ResultType\r\n    | extend PrevCity = tostring(parse_json(LocationDetails).city),\r\n             PrevCountry = tostring(parse_json(LocationDetails).countryOrRegion),\r\n             PrevLatitude = todouble(parse_json(LocationDetails).geoCoordinates.latitude),\r\n             PrevLongitude = todouble(parse_json(LocationDetails).geoCoordinates.longitude),\r\n             PrevSinginIP = tostring(IPAddress)\r\n    | where isnotempty(PrevLongitude) and isnotempty(PrevLatitude) and isnotnull(PrevLongitude) and isnotnull(PrevLatitude) and ResultType !in (50126, 50053, 53003, 50079, 50074, 50140, 500121)\r\n    | summarize Logins = make_list(pack(\"PrevLatitude\", PrevLatitude, \"PrevLongitude\", PrevLongitude, \"PrevTime\", PrevLoginTime, \"PrevCity\", PrevCity, \"PrevCountry\", PrevCountry, \"PrevResultType\", PrevResultType, \"PrevSinginIP\", PrevSinginIP))\r\n        by UserPrincipalName\r\n    | mv-expand Logins\r\n    | project UserPrincipalName,\r\n          PrevLatitude = todouble(Logins.PrevLatitude),\r\n          PrevLongitude = todouble(Logins.PrevLongitude),\r\n          PrevLoginTime = todatetime(Logins.PrevTime),\r\n          PrevCity = tostring(Logins.PrevCity),\r\n          PrevCountry = tostring(Logins.PrevCountry),\r\n          PrevResultType = tostring(Logins.PrevResultType),\r\n          PrevSinginIP = Logins.PrevSinginIP\r\n    | order by UserPrincipalName, PrevLoginTime asc\r\n    | serialize PrevIndex = row_number() + 1\r\n) on $left.Index == $right.PrevIndex and $left.UserPrincipalName == $right.UserPrincipalName\r\n// Sacar colummnas que nos interesan\r\n| project UserPrincipalName, LoginTime, SinginIP, City, Country, Latitude, Longitude,Index, PrevIndex, PrevLoginTime, PrevSinginIP, PrevCity, PrevCountry, PrevLatitude, PrevLongitude, ResultType, PrevResultType\r\n| order by UserPrincipalName, LoginTime asc\r\n// Calcular la distancia y la velocidad\r\n| extend Distance_metros = geo_distance_2points(PrevLongitude, PrevLatitude, Longitude, Latitude),\r\n         TravelTime_min = datetime_diff('minute', LoginTime, PrevLoginTime)\r\n| extend Distance = round((Distance_metros / 1000), 2 )\r\n| extend Speed = round(((Distance * 60) / TravelTime_min ), 2)\r\n// Filtrar por viajes imposibles entendiendo que no se puede viajar a una velocidad superior a 1200km/h\r\n| where  TravelTime_min > 0 and Speed > 1200 and Country != PrevCountry\r\n| project UserPrincipalName, LoginTime, SinginIP, City, Country, PrevLoginTime, PrevSinginIP, PrevCity, PrevCountry",
+                "queryFrequency": "PT2H",
+                "queryPeriod": "PT8H",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "CredentialAccess"
+                ],
+                "techniques": [
+                    "T1110"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT1H",
+                        "matchingMethod": "Selected",
+                        "groupByEntities": [
+                            "Account"
+                        ],
+                        "groupByAlertDetails": [
+                            "DisplayName"
+                        ],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "AlertPerResult"
+                },
+                "alertDetailsOverride": {
+                    "alertDynamicProperties": []
+                },
+                "customDetails": {
+                    "Country": "Country",
+                    "PrevCountry": "PrevCountry",
+                    "PrevSinginIP": "PrevSinginIP"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "SinginIP"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "UserPrincipalName"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+                 
+              }
+          }
+    ]
+  }

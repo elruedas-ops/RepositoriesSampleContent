@@ -1,0 +1,112 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "workspace": {
+        "type": "String"
+      },
+      "rule-name": {
+        "type": "string",
+        "defaultValue": "AO-PRI-[AZU][EID] Privileged role assigned to a user​"
+
+      },
+      "analytic-id": {
+        "type": "string",
+        "defaultValue": "[guid(parameters('workspace'),parameters('rule-name'))]",
+        "minLength": 1,
+        "metadata": {
+          "description": "Unique id for the scheduled alert rule"
+        }
+      }
+    },
+    "resources": [
+      {
+        "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+        "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/',parameters('analytic-id'))]",
+        "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
+        "apiVersion": "2020-01-01",
+        "kind": "Scheduled",
+        "location": "[resourceGroup().location]",
+        "properties": {
+                "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
+                "description": "¿Qué queremos detectar? - Asignaciones de roles con privilegios a un usuario en Azure.\n¿Cómo lo queremos detectar? - Monitorizando eventos que se disparan cuando se modifican los roles de un usuario en Azure.\n¿Porqué lo queremos detectar? - Un atacante podría tratar de elevar sus privilegios modificando el rol de usuario en Azure , obteniendo mayor capacidad para realizar distintas actividades maliciosas comprometiendo los recursos de la organización.",
+                "severity": "High",
+                "enabled": true,
+                "query": "let starttime = now()-1h;\n  let endtime = now();\n  // Set a lookback period of 14 days\n  let lookback = starttime - 14d;\n  // Define a reusable function to query audit logs\n  let awsFunc = (start:datetime, end:datetime) {\n    AuditLogs\n    | where TimeGenerated between (start..end)\n    | where Category =~ \"RoleManagement\"\n    | where AADOperationType in (\"Assign\", \"AssignEligibleRole\")\n    | where ActivityDisplayName has_any (\"Add eligible member to role\", \"Add member to role\")\n    | mv-apply TargetResource = TargetResources on\n      (\n        where TargetResource.type in~ (\"User\", \"ServicePrincipal\")\n        | extend Target = iff(TargetResource.type =~ \"ServicePrincipal\", tostring(TargetResource.displayName), tostring(TargetResource.userPrincipalName)),\n        props = TargetResource.modifiedProperties\n      )\n    | mv-apply Property = props on\n      (\n        where Property.displayName =~ \"Role.DisplayName\"\n        | extend RoleName = trim('\"', tostring(Property.newValue))\n      )\n    | where RoleName contains \"Admin\" and Result == \"success\"\n  };\n  // Query for audit events in the current day\n  let EventInfo_CurrentDay = awsFunc(starttime, endtime);\n  // Query for audit events in the historical period (lookback)\n  let EventInfo_historical = awsFunc(lookback, starttime);\n  // Find unseen events by performing a left anti-join\n  let EventInfo_Unseen = (EventInfo_CurrentDay\n    | join kind=leftanti(EventInfo_historical) on Target, RoleName, OperationName\n  );\n  // Extend and clean up the results\n  EventInfo_Unseen\n  | extend InitiatingAppName = tostring(InitiatedBy.app.displayName)\n  | extend InitiatingAppServicePrincipalId = tostring(InitiatedBy.app.servicePrincipalId)\n  | extend InitiatingUserPrincipalName = tostring(InitiatedBy.user.userPrincipalName)\n  | extend InitiatingAadUserId = tostring(InitiatedBy.user.id)\n  | extend InitiatingIpAddress = tostring(iff(isnotempty(InitiatedBy.user.ipAddress), InitiatedBy.user.ipAddress, InitiatedBy.app.ipAddress))\n  | extend Initiator = iif(isnotempty(InitiatingAppName), InitiatingAppName, InitiatingUserPrincipalName)\n  // You can uncomment the lines below to filter out PIM activations\n| where Initiator != \"MS-PIM\"\n  // | summarize StartTime=min(TimeGenerated), EndTime=min(TimeGenerated) by OperationName, RoleName, Target, Initiator, Result\n  // Project specific columns and split them for further analysis\n  | project TimeGenerated, OperationName, RoleName, Target, Initiator, InitiatingUserPrincipalName, InitiatingAadUserId, InitiatingAppName, InitiatingAppServicePrincipalId, InitiatingIpAddress, Result\n  | extend TargetName = tostring(split(Target,'@',0)[0]), TargetUPNSuffix = tostring(split(Target,'@',1)[0]), InitiatorName = tostring(split(InitiatingUserPrincipalName,'@',0)[0]), InitiatorUPNSuffix = tostring(split(InitiatingUserPrincipalName,'@',1)[0])",
+                "queryFrequency": "PT5M",
+                "queryPeriod": "PT1H",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "Persistence"
+                ],
+                "techniques": [
+                    "T1136"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "P1D",
+                        "matchingMethod": "Selected",
+                        "groupByEntities": [
+                            "Account"
+                        ],
+                        "groupByAlertDetails": [
+                            "DisplayName"
+                        ],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "AlertPerResult"
+                },
+                "alertDetailsOverride": {
+                    "alertDynamicProperties": []
+                },
+                "customDetails": {
+                    "Target": "Target",
+                    "Initiator": "Initiator"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "Target"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "Initiator"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "InitiatingIpAddress"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+                 
+              }
+          }
+    ]
+  }

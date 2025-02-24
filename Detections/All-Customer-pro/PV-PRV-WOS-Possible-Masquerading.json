@@ -1,0 +1,108 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "workspace": {
+        "type": "String"
+      },
+      "rule-name": {
+        "type": "string",
+        "defaultValue": "AO-BRU-[AZU][EID] Excessive login failures for same user followed by successful one​"
+      },
+      "analytic-id": {
+        "type": "string",
+        "defaultValue": "[guid(parameters('workspace'),parameters('rule-name'))]",
+        "minLength": 1,
+        "metadata": {
+          "description": "Unique id for the scheduled alert rule"
+        }
+      }
+    },
+    "resources": [
+      {
+        "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+        "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/',parameters('analytic-id'))]",
+        "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
+        "apiVersion": "2020-01-01",
+        "kind": "Scheduled",
+        "location": "[resourceGroup().location]",
+        "properties": {
+                  "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
+                  "description": "¿Qué queremos detectar? - Procesos del sistema ejecutándose en una ruta que no es la habitual.\n¿Cómo lo queremos detectar? - Monitorizando una lista de procesos críticos del SO Windows y la ruta de ejecución del mismo con el fin de detectar aquellos que no se estén ejecutando en su ruta por defecto del sistema. \n¿Porqué lo queremos detectar? - Un atacante puede enmascarar un proceso malicioso con un nombre conocido para el sistema y evitar así sospechas en los gestores de tareas de los equipos.",
+                  "severity": "High",
+                  "enabled": true,
+                  "query": "SecurityEvent\r\n| where NewProcessName != \"\" or ProcessName != \"\"\r\n| where (EventID == 4688 and (Process == \"cmd.exe\" and NewProcessName !in (\"C:\\\\Windows\\\\System32\\\\cmd.exe\", \"C:\\\\Windows\\\\SysWOW64\\\\cmd.exe\")) or EventID == 4689 and (Process == \"cmd.exe\" and ProcessName !in (\"C:\\\\Windows\\\\System32\\\\cmd.exe\", \"C:\\\\Windows\\\\SysWOW64\\\\cmd.exe\"))) or (EventID == 4688 and (Process == \"csrss.exe\" and NewProcessName != \"C:\\\\Windows\\\\System32\\\\csrss.exe\") or EventID == 4689 and (Process == \"csrss.exe\" and ProcessName != \"C:\\\\Windows\\\\System32\\\\csrss.exe\")) or (EventID == 4688 and (Process == \"dllhost.exe\" and NewProcessName !in (\"C:\\\\Windows\\\\System32\\\\dllhost.exe\", \"C:\\\\Windows\\\\SysWOW64\\\\dllhost.exe\")) or EventID == 4689 and (Process == \"dllhost.exe\" and ProcessName !in (\"C:\\\\Windows\\\\System32\\\\dllhost.exe\", \"C:\\\\Windows\\\\SysWOW64\\\\dllhost.exe\"))) or (EventID == 4688 and (Process == \"explorer.exe\" and NewProcessName !in (\"C:\\\\Windows\\\\explorer.exe\", \"C:\\\\Windows\\\\SysWOW64\\\\explorer.exe\")) or EventID == 4689 and (Process == \"explorer.exe\" and ProcessName !in (\"C:\\\\Windows\\\\explorer.exe\", \"C:\\\\Windows\\\\SysWOW64\\\\explorer.exe\"))) or (EventID == 4688 and (Process == \"lsass.exe\" and NewProcessName != \"C:\\\\Windows\\\\System32\\\\lsass.exe\") or EventID == 4689 and (Process == \"lsass.exe\" and ProcessName != \"C:\\\\Windows\\\\System32\\\\lsass.exe\")) or (EventID == 4688 and (Process == \"rundll32.exe\" and NewProcessName !in (\"C:\\\\Windows\\\\System32\\\\rundll32.exe\", \"C:\\\\Windows\\\\SysWOW64\\\\rundll32.exe\")) or EventID == 4689 and (Process == \"rundll32.exe\" and ProcessName !in (\"C:\\\\Windows\\\\System32\\\\rundll32.exe\", \"C:\\\\Windows\\\\SysWOW64\\\\rundll32.exe\"))) or (EventID == 4688 and (Process == \"services.exe\" and NewProcessName != \"C:\\\\Windows\\\\System32\\\\services.exe\") or EventID == 4689 and (Process == \"services.exe\" and ProcessName != \"C:\\\\Windows\\\\System32\\\\services.exe\")) or (EventID == 4688 and (Process == \"spoolsv.exe\" and NewProcessName != \"C:\\\\Windows\\\\System32\\\\spoolsv.exe\") or EventID == 4689 and (Process == \"spoolsv.exe\" and ProcessName != \"C:\\\\Windows\\\\System32\\\\spoolsv.exe\")) or (EventID == 4688 and (Process == \"svchost.exe\" and NewProcessName !in (\"C:\\\\Windows\\\\System32\\\\svchost.exe\", \"C:\\\\Windows\\\\SysWOW64\\\\svchost.exe\")) or EventID == 4689 and (Process == \"svchost.exe\" and ProcessName !in (\"C:\\\\Windows\\\\System32\\\\svchost.exe\", \"C:\\\\Windows\\\\SysWOW64\\\\svchost.exe\"))) or (EventID == 4688 and (Process == \"wininit.exe\" and NewProcessName != \"C:\\\\Windows\\\\System32\\\\wininit.exe\") or EventID == 4689 and (Process == \"wininit.exe\" and ProcessName != \"C:\\\\Windows\\\\System32\\\\wininit.exe\")) or (EventID == 4688 and (Process == \"winlogon.exe\" and NewProcessName != \"C:\\\\Windows\\\\System32\\\\winlogon.exe\") or EventID == 4689 and (Process == \"winlogon.exe\" and ProcessName != \"C:\\\\Windows\\\\System32\\\\winlogon.exe\"))\r\n\r\n",
+                  "queryFrequency": "PT15M",
+                  "queryPeriod": "PT16M",
+                  "triggerOperator": "GreaterThan",
+                  "triggerThreshold": 0,
+                  "suppressionDuration": "PT5H",
+                  "suppressionEnabled": false,
+                  "startTimeUtc": null,
+                  "tactics": [
+                      "Execution",
+                      "Persistence",
+                      "PrivilegeEscalation"
+                  ],
+                  "techniques": [
+                      "T1569"
+                  ],
+                  "subTechniques": [],
+                  "alertRuleTemplateName": null,
+                  "incidentConfiguration": {
+                      "createIncident": true,
+                      "groupingConfiguration": {
+                          "enabled": true,
+                          "reopenClosedIncident": false,
+                          "lookbackDuration": "P1D",
+                          "matchingMethod": "Selected",
+                          "groupByEntities": [
+                              "Account"
+                          ],
+                          "groupByAlertDetails": [
+                              "DisplayName"
+                          ],
+                          "groupByCustomDetails": []
+                      }
+                  },
+                  "eventGroupingSettings": {
+                      "aggregationKind": "AlertPerResult"
+                  },
+                  "alertDetailsOverride": null,
+                  "customDetails": null,
+                  "entityMappings": [
+                      {
+                          "entityType": "Host",
+                          "fieldMappings": [
+                              {
+                                  "identifier": "HostName",
+                                  "columnName": "Computer"
+                              }
+                          ]
+                      },
+                      {
+                          "entityType": "Process",
+                          "fieldMappings": [
+                              {
+                                  "identifier": "CommandLine",
+                                  "columnName": "CommandLine"
+                              }
+                          ]
+                      },
+                      {
+                          "entityType": "Account",
+                          "fieldMappings": [
+                              {
+                                  "identifier": "FullName",
+                                  "columnName": "Account"
+                              }
+                          ]
+                      }
+                  ],
+                  "sentinelEntitiesMappings": null,
+                  "templateVersion": null
+                 
+              }
+          }
+    ]
+  }

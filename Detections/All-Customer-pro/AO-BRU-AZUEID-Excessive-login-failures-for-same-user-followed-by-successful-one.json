@@ -1,32 +1,32 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "workspace": {
-      "type": "String"
-    },
-    "rule-name": {
-      "type": "string",
-      "defaultValue": "AO-BRU-[AZU][EID] Excessive login failures for same user followed by successful one​"
-    },
-    "analytic-id": {
-      "type": "string",
-      "defaultValue": "[guid(parameters('workspace'),parameters('rule-name'))]",
-      "minLength": 1,
-      "metadata": {
-        "description": "Unique id for the scheduled alert rule"
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "workspace": {
+        "type": "String"
+      },
+      "rule-name": {
+        "type": "string",
+        "defaultValue": "​"
+      },
+      "analytic-id": {
+        "type": "string",
+        "defaultValue": "[guid(parameters('workspace'),parameters('rule-name'))]",
+        "minLength": 1,
+        "metadata": {
+          "description": "Unique id for the scheduled alert rule"
+        }
       }
-    }
-  },
-  "resources": [
-    {
-      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
-      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/',parameters('analytic-id'))]",
-      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
-      "apiVersion": "2020-01-01",
-      "kind": "Scheduled",
-      "location": "[resourceGroup().location]",
-      "properties": {
+    },
+    "resources": [
+      {
+        "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+        "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/',parameters('analytic-id'))]",
+        "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
+        "apiVersion": "2020-01-01",
+        "kind": "Scheduled",
+        "location": "[resourceGroup().location]",
+        "properties": {
                 "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
                 "description": "¿Que queremos detectar? -   Número elevado de logins fallidos de un mismo usuario seguidos por un login exitoso\n¿Como lo queremos detectar? -  Monitorizando eventos de login fallido ("50126" , "50020") realizados por un mismo usuario, seguidos de un login exitoso en Azure AD\n¿Por que lo queremos detectar? - Un atacante puede haber realizado con éxito un ataque de fuerza bruta contra una cuenta de Azure con el fin de obtener un acceso no autorizado a los recursos de la organización",
                 "severity": "Medium",
@@ -101,7 +101,8 @@
                 ],
                 "sentinelEntitiesMappings": null,
                 "templateVersion": null
-            }
-        }
+                 
+              }
+          }
     ]
-}
+  }

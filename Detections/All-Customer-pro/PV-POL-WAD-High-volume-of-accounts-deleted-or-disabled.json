@@ -7,7 +7,7 @@
       },
       "rule-name": {
         "type": "string",
-        "defaultValue": "PV-POL-[AZU][EID] High volume of accounts deleted or disabled​" 
+        "defaultValue": "PV-POL-[WAD] High volume of accounts deleted or disabled​" 
 
       },
       "analytic-id": {

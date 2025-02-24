@@ -7,7 +7,7 @@
       },
       "rule-name": {
         "type": "string",
-        "defaultValue": "​"
+        "defaultValue": "AO-BRU-[AZU][EID] Excessive login failures for same user followed by successful one​"
       },
       "analytic-id": {
         "type": "string",

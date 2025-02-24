@@ -1,0 +1,109 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "workspace": {
+        "type": "String"
+      },
+      "rule-name": {
+        "type": "string",
+        "defaultValue": "PV-POL-[AZU][EID] High volume of accounts deleted or disabled​" 
+
+      },
+      "analytic-id": {
+        "type": "string",
+        "defaultValue": "[guid(parameters('workspace'),parameters('rule-name'))]",
+        "minLength": 1,
+        "metadata": {
+          "description": "Unique id for the scheduled alert rule"
+        }
+      }
+    },
+    "resources": [
+      {
+        "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+        "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/',parameters('analytic-id'))]",
+        "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
+        "apiVersion": "2020-01-01",
+        "kind": "Scheduled",
+        "location": "[resourceGroup().location]",
+        "properties": {
+                  "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
+                  "description": "¿Qué queremos detectar? - Numero elevado y sospechoso de cuentas borradas o deshabilitadas en el Directorio Activo de Windows\n¿Cómo lo queremos detectar? - Monitorizando un número sospechoso de eventos que contentan los códigos de sistema (4743,4726,4725) en un corto periodo de tiempo\n¿Porqué lo queremos detectar? - Un atacante puede realizar todas estas acciones con el fin de dificultar la investigación de sus acciones maliciosas o simplemente para producir un impacto negativo en el correcto funcionamiento de la organización.",
+                "severity": "Medium",
+                "enabled": false,
+                "query": "SecurityEvent\r\n| where EventID in (4726, 4743, 4725) and TargetAccount !endswith \"$\"\r\n| sort by SubjectUserName, TimeGenerated asc \r\n| summarize \r\n    EventCount = count(),\r\n    FirstAction = min(TimeGenerated),\r\n    LastAction = max(TimeGenerated),\r\n    DistinctUsers = dcount(TargetUserName),\r\n    TargetAccounts = make_set(TargetUserName, 99)\r\n    by EventID, SubjectUserName, Activity\r\n| extend ParsedWord = extract(@'\\b(disabled|deleted|removed)\\b', 1, Activity)\r\n| where DistinctUsers > 10",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H5M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "Impact",
+                    "DefenseEvasion",
+                    "PrivilegeEscalation"
+                ],
+                "techniques": [
+                    "T1078",
+                    "T1548",
+                    "T1564",
+                    "T1531"
+                ],
+                "subTechniques": [
+                    "T1564.002"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "P2D",
+                        "matchingMethod": "Selected",
+                        "groupByEntities": [
+                            "Account"
+                        ],
+                        "groupByAlertDetails": [
+                            "DisplayName"
+                        ],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "AlertPerResult"
+                },
+                "alertDetailsOverride": {
+                    "alertDisplayNameFormat": "JCM-PV-ACC-001 [WAD] High volume of accounts {{ParsedWord}} by  \"{{SubjectUserName}}\"",
+                    "alertDynamicProperties": []
+                },
+                "customDetails": {
+                    "EventID": "Activity",
+                    "FirtsAction": "FirstAction",
+                    "LastAction": "LastAction",
+                    "TotalTargets": "DistinctUsers",
+                    "TargetAccounts": "TargetAccounts"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "SubjectUserName"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": [
+                    {
+                        "columnName": "TargetAccounts"
+                    }
+                ],
+                "templateVersion": null
+                 
+              }
+          }
+    ]
+  }

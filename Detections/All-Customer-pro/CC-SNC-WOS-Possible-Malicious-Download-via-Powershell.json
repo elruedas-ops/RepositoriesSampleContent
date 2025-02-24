@@ -1,0 +1,99 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "workspace": {
+        "type": "String"
+      },
+      "rule-name": {
+        "type": "string",
+        "defaultValue": "CC-SNC-[WOS] Possible Malicious Download via Powershell​" 
+
+      },
+      "analytic-id": {
+        "type": "string",
+        "defaultValue": "[guid(parameters('workspace'),parameters('rule-name'))]",
+        "minLength": 1,
+        "metadata": {
+          "description": "Unique id for the scheduled alert rule"
+        }
+      }
+    },
+    "resources": [
+      {
+        "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+        "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/',parameters('analytic-id'))]",
+        "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
+        "apiVersion": "2020-01-01",
+        "kind": "Scheduled",
+        "location": "[resourceGroup().location]",
+        "properties": {
+                  "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
+                  "description": "¿Qué queremos detectar? -  Descargas potencialmente maliciosas o payloads a través de Powershell desde internet.\n¿Cómo lo queremos detectar? - Monitorizando las ejecuciones de Powershell que traten de realizar descargas desde internet.\n¿Por qué lo queremos detectar? - Un atacante puede utilizar estos comandos para transferir herramientas u otros archivos desde un C&C hacia un entorno comprometido",
+                "severity": "High",
+                "enabled": true,
+                "query": "//[TH][TA0011][T1105] Ingress Tool Transfer with Powershell \nDeviceProcessEvents\n| where Timestamp >= ago(1h)\n| where FileName in~ (\"powershell.exe\", \"powershell_ise.exe\")\n| where ProcessCommandLine has \"Net.WebClient\"\n   or ProcessCommandLine has \"DownloadFile\"\n   or ProcessCommandLine has \"Invoke-WebRequest\"\n   or ProcessCommandLine has \"Invoke-Shellcode\"\n   or ProcessCommandLine has \"http\"\n   or ProcessCommandLine has \"IEX\"\n   or ProcessCommandLine has \"Start-BitsTransfer\"\n   or ProcessCommandLine has \"mpcmdrun.exe\"\n   or ProcessCommandLine has \"-ep bypass\"\n| where InitiatingProcessCommandLine !contains \"C:\\\\Windows\\\\system32\\\\gatherNetworkInfo.vbs\"\n| where InitiatingProcessCommandLine <> \"CcmExec.exe\"\n| where InitiatingProcessFolderPath <> \"c:\\\\program files\\\\windows defender advanced threat protection\\\\senseir.exe\"\n| where InitiatingProcessFolderPath !contains \"\\\\opendns\\\\umbrella roaming client\\\\umbrelladiagnostic.exe\"\n| where ProcessCommandLine !contains \"microsoft.com\"\n| where ProcessCommandLine !contains \"slackb.com\"\n| where ProcessCommandLine !contains \"api.github.com/repos/chrisant996/clink/releases\" and AccountName has \"bosipele\"\n| project Timestamp, AccountName, DeviceName, InitiatingProcessCommandLine, FileName, ProcessCommandLine\n| top 100 by Timestamp",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "CommandAndControl"
+                ],
+                "techniques": [
+                    "T1105"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT1H",
+                        "matchingMethod": "Selected",
+                        "groupByEntities": [
+                            "Account",
+                            "Host"
+                        ],
+                        "groupByAlertDetails": [
+                            "DisplayName"
+                        ],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "AccountName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+                 
+              }
+          }
+    ]
+  }

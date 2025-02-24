@@ -1,0 +1,107 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspace": {
+      "type": "String"
+    },
+    "rule-name": {
+      "type": "string",
+      "defaultValue": "AO-BRU-[AZU][EID] Excessive login failures for same user followed by successful one​"
+    },
+    "analytic-id": {
+      "type": "string",
+      "defaultValue": "[guid(parameters('workspace'),parameters('rule-name'))]",
+      "minLength": 1,
+      "metadata": {
+        "description": "Unique id for the scheduled alert rule"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/',parameters('analytic-id'))]",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
+      "apiVersion": "2020-01-01",
+      "kind": "Scheduled",
+      "location": "[resourceGroup().location]",
+      "properties": {
+                "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
+                "description": "¿Que queremos detectar? -   Número elevado de logins fallidos de un mismo usuario seguidos por un login exitoso\n¿Como lo queremos detectar? -  Monitorizando eventos de login fallido ("50126" , "50020") realizados por un mismo usuario, seguidos de un login exitoso en Azure AD\n¿Por que lo queremos detectar? - Un atacante puede haber realizado con éxito un ataque de fuerza bruta contra una cuenta de Azure con el fin de obtener un acceso no autorizado a los recursos de la organización",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "let timeframe = 10m;\r\nlet failedLogins = SigninLogs //Failed Attempts\r\n    | where TimeGenerated > ago(2 * timeframe) \r\n    | where ResultType in (50053, 50126, 50055) // Failed Attempts invalid password, account is locked - too many sign ins, expired password\r\n    | project UserPrincipalName, IPAddress, TimeGenerated\r\n    | sort by UserPrincipalName, TimeGenerated asc  // Ensure events are ordered by time\r\n    | summarize\r\n        FailedAttempts = count(),\r\n        FirstFail = min(TimeGenerated),\r\n        LastFail = max(TimeGenerated),\r\n        AllFails = make_list(TimeGenerated, 120)  // Collect all failed login times into a list\r\n      by UserPrincipalName\r\n    | where FailedAttempts > 100  // Only users with more than 100 failed attempts\r\n    | extend Attempt100 = iff(FailedAttempts >= 100, AllFails[99], datetime(null));\r\nlet successfulLogins = SigninLogs //Success Attempts\r\n    | where TimeGenerated > ago(timeframe)\r\n    | where ResultType == 0\r\n    | project\r\n        UserPrincipalName,\r\n        SuccessTime = TimeGenerated,\r\n        IPAddress,\r\n        OperationName,\r\n        ResultDescription,\r\n        DeviceDetail,\r\n        ConditionalAccessStatus,\r\n        AppDisplayName,\r\n        SourceSystem;\r\nfailedLogins\r\n| join kind=inner (successfulLogins) on UserPrincipalName\r\n| where Attempt100 < SuccessTime // Ensure the successful login occurs after the 100th failure\r\n| extend TimeToSuccess = SuccessTime - FirstFail, // Calculate the time elapsed from the start of the attack to the successful login.\r\n         TimeFromAttack = SuccessTime - Attempt100 // Time difference from the 100th failure\r\n| where TimeFromAttack < 5min // Ensure the successsfull login appears within 5 min\r\n| project\r\n    SuccessTime,\r\n    TimeToSuccess,\r\n    SourceSystem,\r\n    UserPrincipalName,\r\n    FailedAttempts,\r\n    HostName = DeviceDetail.displayName,\r\n    IPAddress,\r\n    FirstFail,\r\n    LastFail,\r\n    OperationName,\r\n    ResultDescription,\r\n    AppDisplayName,\r\n    ConditionalAccessStatus",
+                "queryFrequency": "PT10M",
+                "queryPeriod": "PT20M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "CredentialAccess",
+                    "InitialAccess"
+                ],
+                "techniques": [
+                    "T1110",
+                    "T1078"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "P1D",
+                        "matchingMethod": "Selected",
+                        "groupByEntities": [
+                            "Account"
+                        ],
+                        "groupByAlertDetails": [
+                            "DisplayName"
+                        ],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "AlertPerResult"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "UserPrincipalName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "HostName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "IPAddress"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+            }
+        }
+    ]
+}

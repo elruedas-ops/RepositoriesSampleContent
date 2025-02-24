@@ -7,7 +7,7 @@
       },
       "rule-name": {
         "type": "string",
-        "defaultValue": "AO-BRU-[AZU][EID] Excessive login failures for same user followed by successful one​"
+        "defaultValue": "PV-PRV-[WOS] Possible Masquerading​"
       },
       "analytic-id": {
         "type": "string",

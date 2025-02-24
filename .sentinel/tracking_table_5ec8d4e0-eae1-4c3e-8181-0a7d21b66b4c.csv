@@ -1,14 +1,14 @@
 FileName, CommitSha
-sentinel-deployment.config,d0176f11505175ced27cc0d3ede6f708fe7e120e
-Detections/All-Customer-pro/EX-BRU-AZU-EID-Password-spraying-activity.json,5ef9e87bd209cf3e596a5446d7a8e5b7fb67d2db
-Detections/All-Customer-pro/PV-PRV-WOS-Possible-Masquerading.json,ea478fd15d6ab476a7f7b8df9d170e8aae9c8c8f
 Detections/Sample/PasswordSpray.json,9190e34e9b54db53303efe49488cf5cf8c245b1c
+Detections/All-Customer-pro/EX-BRU-AZU-EID-Password-spraying-activity.json,5ef9e87bd209cf3e596a5446d7a8e5b7fb67d2db
+Detections/All-Customer-pro/AO-EVA-WOS-Windows-Defender-Preferences-Suspicious-Changes.json,4245239f7a0e210164db70d2993e4bf8b998fab4
+Detections/All-Customer-pro/MalformedUserAgents.json,798e97b24000ada77607a103751b3058f97ff224
+Detections/All-Customer-pro/PV-PRV-WOS-Possible-Masquerading.json,26b7b71c70b460cdd2e2000e0709a7ce8b43c70c
+Detections/Sample/MalformedUserAgents2.json,68298967e2475207da040853e5ee81f3781b303e
+Detections/All-Customer-pro/EX-BRU-AZU-EID-Impossible-Travel​.json,d72646e4f9c33530b0b892769e73856d1d485195
 Detections/All-Customer-pro/AO-ACC-AZU-EID-An-account-was-created-and-deleted-in-a-short-period-of-time.json,f0a25e736f1caf2e0393dfeadf9ffab00bda4eb3
 Detections/All-Customer-pro/AO-BRU-AZU-EID-Excessive-login-failures-for-same-user-followed-by-successful-one.json,a7a96a4548794dd4e00f81939601a3f310cf11a5
-Detections/All-Customer-pro/EX-BRU-AZU-EID-Impossible-Travel​.json,d72646e4f9c33530b0b892769e73856d1d485195
-Detections/All-Customer-pro/AO-EVA-WOS-Windows-Defender-Preferences-Suspicious-Changes.json,4245239f7a0e210164db70d2993e4bf8b998fab4
-Detections/Sample/MalformedUserAgents2.json,68298967e2475207da040853e5ee81f3781b303e
-Detections/Sample/imProcess_NOBELIUM_SuspiciousRundll32Exec.json,0ac47f62be8d0fe9152367ac42415cb52bd14ae4
-Detections/All-Customer-pro/MalformedUserAgents.json,798e97b24000ada77607a103751b3058f97ff224
+sentinel-deployment.config,d0176f11505175ced27cc0d3ede6f708fe7e120e
 Detections/Sample/MalformedUserAgents.json,ee6bc4e38e526f390b1936c568cf54dba43c2e9f
+Detections/Sample/imProcess_NOBELIUM_SuspiciousRundll32Exec.json,0ac47f62be8d0fe9152367ac42415cb52bd14ae4
 

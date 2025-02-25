@@ -31,7 +31,7 @@
                   "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
                   "description": "¿Qué queremos detectar? - Numero elevado y sospechoso de cuentas borradas o deshabilitadas en el Directorio Activo de Windows\n¿Cómo lo queremos detectar? - Monitorizando un número sospechoso de eventos que contentan los códigos de sistema (4743,4726,4725) en un corto periodo de tiempo\n¿Porqué lo queremos detectar? - Un atacante puede realizar todas estas acciones con el fin de dificultar la investigación de sus acciones maliciosas o simplemente para producir un impacto negativo en el correcto funcionamiento de la organización.",
                 "severity": "Medium",
-                "enabled": false,
+                "enabled": true,
                 "query": "SecurityEvent\r\n| where EventID in (4726, 4743, 4725) and TargetAccount !endswith \"$\"\r\n| sort by SubjectUserName, TimeGenerated asc \r\n| summarize \r\n    EventCount = count(),\r\n    FirstAction = min(TimeGenerated),\r\n    LastAction = max(TimeGenerated),\r\n    DistinctUsers = dcount(TargetUserName),\r\n    TargetAccounts = make_set(TargetUserName, 99)\r\n    by EventID, SubjectUserName, Activity\r\n| extend ParsedWord = extract(@'\\b(disabled|deleted|removed)\\b', 1, Activity)\r\n| where DistinctUsers > 10",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H5M",
@@ -75,7 +75,7 @@
                     "aggregationKind": "AlertPerResult"
                 },
                 "alertDetailsOverride": {
-                    "alertDisplayNameFormat": "JCM-PV-ACC-001 [WAD] High volume of accounts {{ParsedWord}} by  \"{{SubjectUserName}}\"",
+                    "alertDisplayNameFormat": "High volume of accounts {{ParsedWord}} by  \"{{SubjectUserName}}\"",
                     "alertDynamicProperties": []
                 },
                 "customDetails": {

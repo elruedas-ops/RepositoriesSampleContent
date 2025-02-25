@@ -7,7 +7,7 @@
       },
       "rule-name": {
         "type": "string",
-        "defaultValue": "​"
+        "defaultValue": "DE-PHI-[O365] Possible inbound phishing​"
       },
       "analytic-id": {
         "type": "string",
@@ -28,6 +28,51 @@
         "location": "[resourceGroup().location]",
         "properties": {
                   "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
+                  "description": "¿Qué queremos detectar? - Un posible phishing entrante a la organización\n¿Cómo lo queremos detectar? - Monitorizando una alta cantidad de correos entrantes con el mismo asunto, a distintos destinatarios dentro de la compañía y desde un dominio que no es el corporativo\n¿Porqué lo queremos detectar? - Un atacante puede utilizar estas campañas de phishing para introducir malware en la organización o para añadir un enlace al cuerpo del mensaje con la esperanza de que algún usuario acceda a la web fraudulenta e introduzca sus datos.",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "OfficeActivity\r\n| where Application == \"mail\"\r\n| summarize mails = dcount(DestMailboxOwnerSid) by Name\r\n| where mails > 20",
+                "queryFrequency": "PT30M",
+                "queryPeriod": "PT31M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "Reconnaissance",
+                    "ResourceDevelopment",
+                    "InitialAccess"
+                ],
+                "techniques": [
+                    "T1598",
+                    "T1586",
+                    "T1566"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "P1D",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [
+                            "DisplayName"
+                        ],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "AlertPerResult"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": null,
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
                  
               }
           }

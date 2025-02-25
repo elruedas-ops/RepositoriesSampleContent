@@ -1,0 +1,76 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "workspace": {
+        "type": "String"
+      },
+      "rule-name": {
+        "type": "string",
+        "defaultValue": "DE-EMA-[O365] Attached files with a suspicious extension​"
+      },
+      "analytic-id": {
+        "type": "string",
+        "defaultValue": "[guid(parameters('workspace'),parameters('rule-name'))]",
+        "minLength": 1,
+        "metadata": {
+          "description": "Unique id for the scheduled alert rule"
+        }
+      }
+    },
+    "resources": [
+      {
+        "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+        "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/',parameters('analytic-id'))]",
+        "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
+        "apiVersion": "2020-01-01",
+        "kind": "Scheduled",
+        "location": "[resourceGroup().location]",
+        "properties": {
+                "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
+                "description": "¿Qué queremos detectar? - Adjuntos con una extensión sospechosa\n¿Cómo lo queremos detectar? - Monitorizando en telemetría de la pasarela de correo, la presencia de archivos adjuntos con una extensión sospechosa\n¿Porqué lo queremos detectar? - Un atacante puede enviar estos archivos con el objetivo de que el usuario acceda a los mismos para ejecutar comandos maliciosos o instalar software no permitido en los equipos corporativos.",
+                "severity": "High",
+                "enabled": true,
+                "query": "OfficeActivity\r\n| where Application == \"mail\" \r\n    and ArtifactsShared in~ (\"docm\", \"xlm\", \"dotm\", \"xltm\", \"xlam\", \"pptm\", \"potm\", \"ppam\", \"ppsm\", \"sldm\", \"exe\", \"reg\", \"Ink.\", \"scf\", \"ink\", \"jar\", \"tarro\", \"cmd\", \"vbe\", \"etc\", \"vbs\", \"se\", \"ps2\", \"ps2xml\", \"psc1\", \"psc2\", \"msh\", \"msh1\", \"reg\", \"ISO\", \"DMG\") \r\n    and Activity !in (\"dropped\", \"drop\")\r\n",
+                "queryFrequency": "PT5M",
+                "queryPeriod": "PT6M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "ResourceDevelopment",
+                    "InitialAccess"
+                ],
+                "techniques": [
+                    "T1586",
+                    "T1566"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": null,
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+                 
+              }
+          }
+    ]
+  }

@@ -32,7 +32,7 @@
                 "description": "¿Qué queremos detectar? - Un intento de login de un mismo usuario desde distintas geolocalizaciones en un corto periodo de tiempo\n¿Cómo lo queremos detectar? - Monitorizando la geolocalización de las IPs de origen en un intento de login en O365\n¿Porqué lo queremos detectar? - Un atacante puede intentar acceder a la red interna de la organización realizando un login exitoso a través de la herramienta O365. Para ello puede utilizar una red de equipos geolocalizados en distintos paises.",
                 "severity": "Low",
                 "enabled": true,
-                "query": "SigninLogs\n| where AppDisplayName contains "365"\n| extend Country = tostring(LocationDetails.countryOrRegion)\n| summarize distictCountrys = dcount(Country) by UserPrincipalName\n| where distictCountrys >=3",
+                "query": "SigninLogs\n| where AppDisplayName contains '365'\n| extend Country = tostring(LocationDetails.countryOrRegion)\n| summarize distictCountrys = dcount(Country) by UserPrincipalName\n| where distictCountrys >=3",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H",
                 "triggerOperator": "GreaterThan",

@@ -7,7 +7,7 @@
       },
       "rule-name": {
         "type": "string",
-        "defaultValue": "AO-ACC-[AZU][EID] An account was created and deleted in a short period of time​"
+        "defaultValue": "AO-ACC-[WAD] An account was created and deleted in a short period of time​"
       },
       "analytic-id": {
         "type": "string",

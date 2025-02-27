@@ -41,7 +41,7 @@
                 "suppressionEnabled": false,
                 "startTimeUtc": null,
                 "tactics": [
-                    "Privilege Escalation",
+                    "PrivilegeEscalation",
                     "Impact",
                     "DefenseEvasion"
                 ],

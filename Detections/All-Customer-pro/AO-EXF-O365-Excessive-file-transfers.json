@@ -1,0 +1,116 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "workspace": {
+        "type": "String"
+      },
+      "rule-name": {
+        "type": "string",
+        "defaultValue": "AO-EXF-[O365] Excessive file transfers"
+      },
+      "analytic-id": {
+        "type": "string",
+        "defaultValue": "[guid(parameters('workspace'),parameters('rule-name'))]",
+        "minLength": 1,
+        "metadata": {
+          "description": "Unique id for the scheduled alert rule"
+        }
+      }
+    },
+    "resources": [
+      {
+        "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+        "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/',parameters('analytic-id'))]",
+        "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
+        "apiVersion": "2020-01-01",
+        "kind": "Scheduled",
+        "location": "[resourceGroup().location]",
+        "properties": {
+                "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
+                "description": "¿Qué queremos detectar? - Un número elevado de transferencias de archivos excesivo por parte de un mismo usuario en O365\n¿Cómo lo queremos detectar? - Monitorizando los eventos de transferencia de archivos (FileUploaded,FileDownloaded) llevados a cabo por un mismo usuario en un período de tiempo de 4h.\n¿Por qué lo queremos detectar? - Un atacante con acceso a las aplicaciones de O365 como SharePoint o OneDrive corporativas, podría tratar de extraer una gran cantidad de archivos allí presentes, poniendo en riesgo la confidencialidad y la integridad de la información.",
+                "severity": "Low",
+                "enabled": true,
+                "query": "let threshold = 5000;\nOfficeActivity\n| where EventSource == \"SharePoint\" and OfficeWorkload has_any(\"SharePoint\", \"OneDrive\") and Operation has_any (\"FileDownloaded\", \"FileSyncDownloadedFull\", \"FileSyncUploadedFull\", \"FileUploaded\")\n| summarize count_distinct_OfficeObjectId=dcount(OfficeObjectId), fileslist=make_set(OfficeObjectId, 10000) by UserId,ClientIP,bin(TimeGenerated, 15m)\n| where count_distinct_OfficeObjectId >= threshold\n| extend FileSample = iff(array_length(fileslist) == 1, tostring(fileslist[0]), strcat(\"SeeFilesListField\",\"_\", tostring(hash(tostring(fileslist)))))\n| extend AccountName = tostring(split(UserId, \"@\")[0]), AccountUPNSuffix = tostring(split(UserId, \"@\")[1])\n",
+                "queryFrequency": "PT15M",
+                "queryPeriod": "PT15M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT1H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "Exfiltration"
+                ],
+                "techniques": [
+                    "T1020"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": "8b4f03e7-3460-4401-824d-e65a8dd464f0",
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "Selected",
+                        "groupByEntities": [
+                            "Account"
+                        ],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "AlertPerResult"
+                },
+                "alertDetailsOverride": {
+                    "alertDynamicProperties": []
+                },
+                "customDetails": {
+                    "TransferCount": "count_distinct_OfficeObjectId",
+                    "FilesList": "fileslist"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "UserId"
+                            },
+                            {
+                                "identifier": "Name",
+                                "columnName": "AccountName"
+                            },
+                            {
+                                "identifier": "UPNSuffix",
+                                "columnName": "AccountUPNSuffix"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "ClientIP"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "File",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "FileSample"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+            }
+        }
+    ]
+}

@@ -7,8 +7,7 @@
       },
       "rule-name": {
         "type": "string",
-        "defaultValue": "PV-POL-[O365] Microsoft 365 Exchange Security Modification​"
-
+        "defaultValue": "​"
       },
       "analytic-id": {
         "type": "string",
@@ -28,49 +27,9 @@
         "kind": "Scheduled",
         "location": "[resourceGroup().location]",
         "properties": {
-                "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
-                "description": "¿Qué queremos detectar? - Modificaciones en la política de seguridad de Exchange Online Protection (EOP) en O365.|n¿Cómo lo queremos detectar? - Monitorizando los eventos que dispara O365 al realizarse cambios en las siguientes directivas de seguridad: Deshabilitación o eliminación del filtro de Malware, eliminación de la política anti-phishing o deshabilitación del filtro de archivos adjuntos. (\"Remove-MalwareFilterRule\", \"Disable-MalwareFilterRule\", \"Remove-AntiPhishPolicy\" o \"Disable-SafeAttachmentRule\".)|n¿Por qué lo queremos detectar? - Un atacante puede deshabilitar estos servicios con el fin de evadir defensas y facilitar ataques a través del correo electrónico.",
-                "severity": "Low",
-                "enabled": true,
-                "query": "OfficeActivity\n| where OfficeWorkload =~ \"Exchange\"\n| where Operation in~ (\"Remove-MalwareFilterRule\", \"Disable-MalwareFilterRule\", \"Remove-AntiPhishPolicy\", \"Disable-SafeAttachmentRule\")",
-                "queryFrequency": "PT1H",
-                "queryPeriod": "PT1H",
-                "triggerOperator": "GreaterThan",
-                "triggerThreshold": 0,
-                "suppressionDuration": "PT5H",
-                "suppressionEnabled": false,
-                "startTimeUtc": null,
-                "tactics": [
-                    "PrivilegeEscalation",
-                    "Impact",
-                    "DefenseEvasion"
-                ],
-                "techniques": [],
-                "subTechniques": [],
-                "alertRuleTemplateName": null,
-                "incidentConfiguration": {
-                    "createIncident": true,
-                    "groupingConfiguration": {
-                        "enabled": false,
-                        "reopenClosedIncident": false,
-                        "lookbackDuration": "PT5H",
-                        "matchingMethod": "AllEntities",
-                        "groupByEntities": [],
-                        "groupByAlertDetails": [],
-                        "groupByCustomDetails": []
-                    }
-                },
-                "eventGroupingSettings": {
-                    "aggregationKind": "AlertPerResult"
-                },
-                "alertDetailsOverride": null,
-                "customDetails": null,
-                "entityMappings": null,
-                "sentinelEntitiesMappings": null,
-                "templateVersion": null
-                
+                  "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
                  
               }
           }
     ]
-  }       
+  }

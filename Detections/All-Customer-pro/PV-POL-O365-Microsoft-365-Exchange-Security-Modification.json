@@ -30,7 +30,7 @@
                   "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
                   "description": "¿Qué queremos detectar? - Modificaciones en la política de seguridad de Exchange Online Protection (EOP) en O365.\n¿Cómo lo queremos detectar? - Monitorizando los eventos que dispara O365 al realizarse cambios en las siguientes directivas de seguridad: Deshabilitación o eliminación del filtro de Malware, eliminación de la política anti-phishing o deshabilitación del filtro de archivos adjuntos. (\"Remove-MalwareFilterRule\", \"Disable-MalwareFilterRule\", \"Remove-AntiPhishPolicy\" o \"Disable-SafeAttachmentRule\".)\n¿Porqué lo queremos detectar? - Un atacante puede deshabilitar estos servicios con el fin de evadir defensas y facilitar ataques a través del correo electrónico.",
                 "severity": "Low",
-                "enabled": false,
+                "enabled": true,
                 "query": "OfficeActivity\r\n| where OfficeWorkload == \"Exchange\" and Operation in~ (\"Remove-MalwareFilterRule\", \"Disable-MalwareFilterRule\", \"Remove-AntiPhishPolicy\", \"Disable-SafeAttachmentRule\") and ResultStatus == \"Succeeded\"\r\n| project TimeGenerated, Operation, OfficeWorkload, ResultStatus, UserId, ClientIP ",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H5M",

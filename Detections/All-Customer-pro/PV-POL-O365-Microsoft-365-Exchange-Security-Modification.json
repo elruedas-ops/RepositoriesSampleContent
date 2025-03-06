@@ -7,7 +7,7 @@
       },
       "rule-name": {
         "type": "string",
-        "defaultValue": "​"
+        "defaultValue": "PV-POL-[O365] Microsoft 365 Exchange Security Modification​"
       },
       "analytic-id": {
         "type": "string",
@@ -28,6 +28,79 @@
         "location": "[resourceGroup().location]",
         "properties": {
                   "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
+                  "description": "¿Qué queremos detectar? - Modificaciones en la política de seguridad de Exchange Online Protection (EOP) en O365.\n¿Cómo lo queremos detectar? - Monitorizando los eventos que dispara O365 al realizarse cambios en las siguientes directivas de seguridad: Deshabilitación o eliminación del filtro de Malware, eliminación de la política anti-phishing o deshabilitación del filtro de archivos adjuntos. (\"Remove-MalwareFilterRule\", \"Disable-MalwareFilterRule\", \"Remove-AntiPhishPolicy\" o \"Disable-SafeAttachmentRule\".)\n¿Porqué lo queremos detectar? - Un atacante puede deshabilitar estos servicios con el fin de evadir defensas y facilitar ataques a través del correo electrónico.",
+                "severity": "Low",
+                "enabled": false,
+                "query": "OfficeActivity\r\n| where OfficeWorkload == \"Exchange\" and Operation in~ (\"Remove-MalwareFilterRule\", \"Disable-MalwareFilterRule\", \"Remove-AntiPhishPolicy\", \"Disable-SafeAttachmentRule\") and ResultStatus == \"Succeeded\"\r\n| project TimeGenerated, Operation, OfficeWorkload, ResultStatus, UserId, ClientIP ",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H5M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "DefenseEvasion",
+                    "Impact",
+                    "PrivilegeEscalation"
+                ],
+                "techniques": [
+                    "T1565",
+                    "T1484",
+                    "T1629"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT12H",
+                        "matchingMethod": "Selected",
+                        "groupByEntities": [
+                            "Account"
+                        ],
+                        "groupByAlertDetails": [
+                            "DisplayName"
+                        ],
+                        "groupByCustomDetails": [
+                            "Operation"
+                        ]
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "AlertPerResult"
+                },
+                "alertDetailsOverride": {
+                    "alertDynamicProperties": []
+                },
+                "customDetails": {
+                    "Operation": "Operation"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "UserId"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "ClientIP"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+                
                  
               }
           }

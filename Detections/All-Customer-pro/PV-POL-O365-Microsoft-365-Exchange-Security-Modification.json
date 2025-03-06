@@ -97,8 +97,9 @@
                             }
                         ]
                     }
-                ]
-                
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
                  
               }
           }

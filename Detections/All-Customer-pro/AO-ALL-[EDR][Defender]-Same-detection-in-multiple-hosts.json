@@ -7,7 +7,7 @@
       },
       "rule-name": {
         "type": "string",
-        "defaultValue": "AO-ALL-[EDR][Defender] Same detection in multiple hosts1​"
+        "defaultValue": "AO-ALL-[EDR][Defender] Same detection in multiple hosts​"
       },
       "analytic-id": {
         "type": "string",
@@ -27,13 +27,13 @@
         "kind": "Scheduled",
         "location": "[resourceGroup().location]",
         "properties": {
-                "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
-                "description": "test1",
+                  "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
+                  "description": "¿Qué queremos detectar? - Una misma alerta de seguridad en multitud de equipos distintos \n¿Cómo lo queremos detectar? - Monitorizando las alertas que genera la herramienta EDR y agrupándolas por el mismo tipo de alerta (malware, exploit, ransomware, PUP...) en varios equipos distintos de la organización \n¿Por qué lo queremos detectar? - Esto podría significar que varios equipos de la compañía han sido infectados con el mismo malware, el cual podría estar moviéndose a través de la red o haber entrado por un mismo vector de entrada (phising, vulnerabilidad, mala configuración...)",
                 "severity": "Medium",
                 "enabled": true,
-                "query": "SecurityAlert",
+                "query": "SecurityAlert\r\n| where ProductName == \"Microsoft Defender Advanced Threat Protection\" and AlertSeverity != \"Informational\"\r\n| extend Entity = parse_json(Entities), parse_json(ExtendedProperties)\r\n| mv-expand Entity\r\n| extend HostName = tostring(Entity.HostName), XDR_IncidentID = tostring(ExtendedProperties.IncidentId), User = tostring(Entity.LoggedOnUsers[0].AccountName), HostIP = tostring(Entity.LastIpAddress.Address), Category = tostring(ExtendedProperties.Category), ThreatName = tostring(ExtendedProperties.ThreatName)\r\n| where isnotempty(HostName)\r\n| project TimeGenerated, AlertName, Description, XDR_IncidentID, AlertSeverity, HostName, User, HostIP, Category, ThreatName\r\n| join kind=inner ( \r\n    SecurityAlert\r\n    | where ProductName == \"Microsoft Defender Advanced Threat Protection\" and AlertSeverity != \"Informational\"\r\n    | extend Entity = parse_json(Entities), parse_json(ExtendedProperties)\r\n    | mv-expand Entity\r\n    | extend HostName = tostring(Entity.HostName), XDR_IncidentID = tostring(ExtendedProperties.IncidentID)\r\n    | where isnotempty(HostName)\r\n    | summarize EntityCount = dcount(HostName) by AlertName\r\n    | where EntityCount >=3\r\n) on AlertName",
                 "queryFrequency": "PT1H",
-                "queryPeriod": "PT3H",
+                "queryPeriod": "P3D",
                 "triggerOperator": "GreaterThan",
                 "triggerThreshold": 0,
                 "suppressionDuration": "PT5H",
@@ -116,7 +116,8 @@
                 ],
                 "sentinelEntitiesMappings": null,
                 "templateVersion": null
-            }
-        }
+                 
+              }
+          }
     ]
-}
+  }

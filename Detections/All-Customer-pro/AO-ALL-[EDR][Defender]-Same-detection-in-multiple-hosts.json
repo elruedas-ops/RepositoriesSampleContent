@@ -33,7 +33,7 @@
                 "enabled": true,
                 "query": "SecurityAlert\r\n| where ProductName == \"Microsoft Defender Advanced Threat Protection\" and AlertSeverity != \"Informational\"\r\n| extend Entity = parse_json(Entities), parse_json(ExtendedProperties)\r\n| mv-expand Entity\r\n| extend HostName = tostring(Entity.HostName), XDR_IncidentID = tostring(ExtendedProperties.IncidentId), User = tostring(Entity.LoggedOnUsers[0].AccountName), HostIP = tostring(Entity.LastIpAddress.Address), Category = tostring(ExtendedProperties.Category), ThreatName = tostring(ExtendedProperties.ThreatName)\r\n| where isnotempty(HostName)\r\n| project TimeGenerated, AlertName, Description, XDR_IncidentID, AlertSeverity, HostName, User, HostIP, Category, ThreatName\r\n| join kind=inner ( \r\n    SecurityAlert\r\n    | where ProductName == \"Microsoft Defender Advanced Threat Protection\" and AlertSeverity != \"Informational\"\r\n    | extend Entity = parse_json(Entities), parse_json(ExtendedProperties)\r\n    | mv-expand Entity\r\n    | extend HostName = tostring(Entity.HostName), XDR_IncidentID = tostring(ExtendedProperties.IncidentID)\r\n    | where isnotempty(HostName)\r\n    | summarize EntityCount = dcount(HostName) by AlertName\r\n    | where EntityCount >=3\r\n) on AlertName",
                 "queryFrequency": "PT1H",
-                "queryPeriod": "P3D",
+                "queryPeriod": "PT3D",
                 "triggerOperator": "GreaterThan",
                 "triggerThreshold": 0,
                 "suppressionDuration": "PT5H",

@@ -67,9 +67,7 @@
                 "eventGroupingSettings": {
                     "aggregationKind": "AlertPerResult"
                 },
-                "alertDetailsOverride": {
-                    "alertDynamicProperties": []
-                },
+                "alertDetailsOverride": null,
                 "customDetails": {
                     "AlertName": "AlertName",
                     "Defender_IncidentId": "XDR_IncidentID",

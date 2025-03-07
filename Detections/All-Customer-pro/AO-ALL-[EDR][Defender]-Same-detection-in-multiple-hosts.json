@@ -7,7 +7,7 @@
       },
       "rule-name": {
         "type": "string",
-        "defaultValue": "AO-ALL-[EDR][Defender] Same detection in multiple hosts​"
+        "defaultValue": "AO-ALL-[EDR][Defender] Same detection in multiple hosts1​"
       },
       "analytic-id": {
         "type": "string",

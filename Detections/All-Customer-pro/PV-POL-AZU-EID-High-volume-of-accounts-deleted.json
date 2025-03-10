@@ -1,0 +1,130 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "workspace": {
+        "type": "String"
+      },
+      "rule-name": {
+        "type": "string",
+        "defaultValue": "PV-POL-[AZU][EID] High volume of accounts deleted​"
+      },
+      "analytic-id": {
+        "type": "string",
+        "defaultValue": "[guid(parameters('workspace'),parameters('rule-name'))]",
+        "minLength": 1,
+        "metadata": {
+          "description": "Unique id for the scheduled alert rule"
+        }
+      }
+    },
+    "resources": [
+      {
+        "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+        "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/',parameters('analytic-id'))]",
+        "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',parameters('analytic-id'))]",
+        "apiVersion": "2020-01-01",
+        "kind": "Scheduled",
+        "location": "[resourceGroup().location]",
+        "properties": {
+                  "displayName": "[concat(parameters('rule-name'),' ',parameters('analytic-id'))]",
+                  "description": "¿Qué queremos detectar? - Número elevado y sospechoso de cuentas \nborradas o deshabilitadas en el directorio activo\n¿Cómo lo queremos detectar? - Monitorizando un número sospechoso de \neventos de la auditoría de Azure relacionados con el borrado o \ninhabilitación de cuentas en un corto periodo de tiempo\n¿Por qué lo queremos detectar? - Un atacante puede realizar todas estas \nacciones con el fin de dificultar la investigación de sus acciones maliciosas \no simplemente para producir un impacto negativo en el correcto \nfuncionamiento de la organización.",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "AuditLogs\r\n| where OperationName =~ \"Delete user\"\r\n| mv-apply TargetResource = TargetResources on \r\n  (\r\n      where TargetResource.type == \"User\"\r\n      | extend TargetUserPrincipalName = extract(@'([a-f0-9]{32})?(.*)', 2, tostring(TargetResource.userPrincipalName))\r\n  )\r\n| extend DeletedByApp = tostring(InitiatedBy.app.displayName),\r\nDeletedByAppServicePrincipalId = tostring(InitiatedBy.app.servicePrincipalId),\r\nDeletedByUserPrincipalName = tostring(InitiatedBy.user.userPrincipalName),\r\nDeletedByAadUserId = tostring(InitiatedBy.user.id),\r\nDeletedByIPAddress = tostring(InitiatedBy.user.ipAddress)\r\n| project Deletion_TimeGenerated = TimeGenerated, TargetUserPrincipalName, DeletedByApp, DeletedByAppServicePrincipalId, DeletedByUserPrincipalName, DeletedByAadUserId, DeletedByIPAddress, \r\nDeletion_AdditionalDetails = AdditionalDetails, Deletion_InitiatedBy = InitiatedBy, Deletion_TargetResources = TargetResources\r\n| extend TargetName = tostring(split(TargetUserPrincipalName,'@',0)[0]), TargetUPNSuffix = tostring(split(TargetUserPrincipalName,'@',1)[0])\r\n| extend DeletedByName = tostring(split(DeletedByUserPrincipalName,'@',0)[0]), DeletedByUPNSuffix = tostring(split(DeletedByUserPrincipalName,'@',1)[0])\r\n| distinct TargetUserPrincipalName, TargetName, TargetUPNSuffix, DeletedByUserPrincipalName, DeletedByName, DeletedByUPNSuffix, DeletedByApp, DeletedByAppServicePrincipalId",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H5M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 10,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "Impact",
+                    "PrivilegeEscalation",
+                    "DefenseEvasion"
+                ],
+                "techniques": [
+                    "T1531",
+                    "T1078",
+                    "T1548",
+                    "T1564"
+                ],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT3H",
+                        "matchingMethod": "AnyAlert",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "AlertPerResult"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": {
+                    "Target": "TargetUserPrincipalName",
+                    "DeletedBy": "DeletedByUserPrincipalName"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "TargetName"
+                            },
+                            {
+                                "identifier": "FullName",
+                                "columnName": "TargetUserPrincipalName"
+                            },
+                            {
+                                "identifier": "UPNSuffix",
+                                "columnName": "TargetUPNSuffix"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "DeletedByName"
+                            },
+                            {
+                                "identifier": "FullName",
+                                "columnName": "DeletedByUserPrincipalName"
+                            },
+                            {
+                                "identifier": "UPNSuffix",
+                                "columnName": "DeletedByUPNSuffix"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "CloudApplication",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "DeletedByApp"
+                            },
+                            {
+                                "identifier": "AppId",
+                                "columnName": "DeletedByAppServicePrincipalId"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+                 
+              }
+          }
+    ]
+  }

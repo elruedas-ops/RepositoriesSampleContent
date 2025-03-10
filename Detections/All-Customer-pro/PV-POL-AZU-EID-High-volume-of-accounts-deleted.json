@@ -44,12 +44,7 @@
                     "PrivilegeEscalation",
                     "DefenseEvasion"
                 ],
-                "techniques": [
-                    "T1531",
-                    "T1078",
-                    "T1548",
-                    "T1564"
-                ],
+                "techniques": [],
                 "subTechniques": [],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
